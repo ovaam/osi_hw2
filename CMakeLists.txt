@@ -9,4 +9,10 @@ add_executable(osi_hw2 main.cpp
         agent7.cpp
         smoker1.cpp
         smoker2.cpp
-        smoker3.cpp)
+        smoker3.cpp
+        agent8.cpp
+        smoker_tobacco.cpp
+        init_shared_memory.cpp
+        smoker_paper.cpp
+        smoker_matches.cpp
+)

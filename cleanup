@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Удаляем разделяемую память
+shm_id=$(ipcs -m | grep "0x00001234" | awk '{print $2}')
+if [ -n "$shm_id" ]; then
+    ipcrm -m $shm_id
+    echo "Удалена разделяемая память: $shm_id"
+fi
+
+# Удаляем семафоры
+for sem_key in 0x1235 0x1236 0x1237 0x1238 0x1239; do
+    sem_id=$(ipcs -s | grep "$sem_key" | awk '{print $2}')
+    if [ -n "$sem_id" ]; then
+        ipcrm -s $sem_id
+        echo "Удален семафор: $sem_id"
+    fi
+done

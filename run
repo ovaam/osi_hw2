@@ -1,30 +1,30 @@
 #!/bin/bash
 
-# Удаляем старые IPC ресурсы
-ipcrm -a 2>/dev/null
-
-# Компилируем с правильными флагами
+# Компиляция
 echo "Compiling..."
-g++ -std=c++11 -o agent agent7.cpp
-g++ -std=c++11 -o smoker1 smoker1.cpp
-g++ -std=c++11 -o smoker2 smoker2.cpp
-g++ -std=c++11 -o smoker3 smoker3.cpp
+g++ -std=c++11 -o agent agent8.cpp
+g++ -std=c++11 -o smoker smoker_template.cpp
 
+# Функция очистки
 cleanup() {
     echo "Cleaning up..."
-    pkill -P $$
+    pkill -P $$ 2>/dev/null
     ipcrm -a 2>/dev/null
-    rm -f agent smoker1 smoker2 smoker3
+    rm -f agent smoker
     exit 0
 }
 
 trap cleanup SIGINT SIGTERM
 
+# Удаление старых IPC объектов
+ipcrm -a 2>/dev/null
+
+# Запуск
 echo "Starting processes..."
 ./agent &
-./smoker1 &
-./smoker2 &
-./smoker3 &
+./smoker 1 &
+./smoker 2 &
+./smoker 3 &
 
 echo "System is running. Press Ctrl+C to stop..."
 wait

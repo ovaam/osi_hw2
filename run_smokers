@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Создаем разделяемую память
+shm_id=$(ipcs -m | grep "0x00001234" | awk '{print $2}')
+if [ -z "$shm_id" ]; then
+    shm_id=$(ipcmk -M 1024 -p 0666 | awk '{print $NF}')
+    echo "Created shared memory: $shm_id"
+else
+    echo "Using existing shared memory: $shm_id"
+fi
+
+# Инициализируем разделяемую память
+./init_shared_memory
+
+# Запускаем агента и курильщиков в фоновом режиме
+./agent &
+./smoker_tobacco &
+./smoker_paper &
+./smoker_matches &
+
+# Ждем завершения по Ctrl+C
+trap "kill 0" EXIT
+wait

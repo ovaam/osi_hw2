@@ -5,6 +5,7 @@
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <sys/sem.h>
+#include <sys/msg.h>
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
@@ -14,13 +15,20 @@
 #include <iostream>
 #include <random>
 
-const int SHM_KEY = 1234;
-const int SEM_KEY = 5678;
+// Ключи для IPC
+const int SHM_KEY = 12345;
+const int SEM_KEY = 54321;
+const int MSG_KEY = 98765;
 
+// Структура для сообщений
+struct MsgBuf {
+  long mtype;
+  int comp1;
+  int comp2;
+};
+
+// Структура для разделяемой памяти
 struct SharedData {
-  bool tobacco;
-  bool paper;
-  bool matches;
   bool running;
 };
 
