@@ -16,4 +16,6 @@ add_executable(osi_hw2 main.cpp
         smoker_paper.cpp
         smoker_matches.cpp
         agent9.cpp
+        agent10.cpp
+        smoker10.cpp
 )

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# Компиляция программ
+g++ -std=c++11 agent10.cpp -o agent
+g++ -std=c++11 smoker10.cpp -o smoker
+
+# Запуск агента
+./agent &
+
+# Запуск курильщиков
+./smoker 1 &  # Курильщик с табаком
+./smoker 2 &  # Курильщик с бумагой
+./smoker 3 &  # Курильщик со спичками
+
+# Ожидание завершения по Ctrl+C
+trap "kill 0" EXIT
+wait

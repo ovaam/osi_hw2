@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Удаление очередей сообщений
+for i in 1 2 3; do
+    queue_name="/smoker_queue_$i"
+    if [ -e "/dev/mqueue$queue_name" ]; then
+        rm "/dev/mqueue$queue_name"
+    fi
+done
+
+if [ -e "/dev/mqueue/agent_queue" ]; then
+    rm "/dev/mqueue/agent_queue"
+fi
+
+# Удаление семафоров
+for sem in /agent_sem /tobacco_sem /paper_sem /matches_sem /mutex_sem; do
+    if [ -e "/dev/shm/sem$sem" ]; then
+        rm "/dev/shm/sem$sem"
+    fi
+done
+
+echo "Ресурсы очищены"

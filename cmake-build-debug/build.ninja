@@ -115,6 +115,24 @@ build CMakeFiles/osi_hw2.dir/smoker_matches.cpp.o: CXX_COMPILER__osi_hw2_unscann
   OBJECT_DIR = CMakeFiles/osi_hw2.dir
   OBJECT_FILE_DIR = CMakeFiles/osi_hw2.dir
 
+build CMakeFiles/osi_hw2.dir/agent9.cpp.o: CXX_COMPILER__osi_hw2_unscanned_Debug /Users/ovaam/osi_hw2/agent9.cpp || cmake_object_order_depends_target_osi_hw2
+  DEP_FILE = CMakeFiles/osi_hw2.dir/agent9.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -mmacosx-version-min=14.0 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/osi_hw2.dir
+  OBJECT_FILE_DIR = CMakeFiles/osi_hw2.dir
+
+build CMakeFiles/osi_hw2.dir/agent10.cpp.o: CXX_COMPILER__osi_hw2_unscanned_Debug /Users/ovaam/osi_hw2/agent10.cpp || cmake_object_order_depends_target_osi_hw2
+  DEP_FILE = CMakeFiles/osi_hw2.dir/agent10.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -mmacosx-version-min=14.0 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/osi_hw2.dir
+  OBJECT_FILE_DIR = CMakeFiles/osi_hw2.dir
+
+build CMakeFiles/osi_hw2.dir/smoker10.cpp.o: CXX_COMPILER__osi_hw2_unscanned_Debug /Users/ovaam/osi_hw2/smoker10.cpp || cmake_object_order_depends_target_osi_hw2
+  DEP_FILE = CMakeFiles/osi_hw2.dir/smoker10.cpp.o.d
+  FLAGS = -g -std=gnu++17 -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -mmacosx-version-min=14.0 -fcolor-diagnostics
+  OBJECT_DIR = CMakeFiles/osi_hw2.dir
+  OBJECT_FILE_DIR = CMakeFiles/osi_hw2.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target osi_hw2
@@ -123,7 +141,7 @@ build CMakeFiles/osi_hw2.dir/smoker_matches.cpp.o: CXX_COMPILER__osi_hw2_unscann
 #############################################
 # Link the executable osi_hw2
 
-build osi_hw2: CXX_EXECUTABLE_LINKER__osi_hw2_Debug CMakeFiles/osi_hw2.dir/main.cpp.o CMakeFiles/osi_hw2.dir/main7.cpp.o CMakeFiles/osi_hw2.dir/agent7.cpp.o CMakeFiles/osi_hw2.dir/smoker1.cpp.o CMakeFiles/osi_hw2.dir/smoker2.cpp.o CMakeFiles/osi_hw2.dir/smoker3.cpp.o CMakeFiles/osi_hw2.dir/agent8.cpp.o CMakeFiles/osi_hw2.dir/smoker_tobacco.cpp.o CMakeFiles/osi_hw2.dir/init_shared_memory.cpp.o CMakeFiles/osi_hw2.dir/smoker_paper.cpp.o CMakeFiles/osi_hw2.dir/smoker_matches.cpp.o
+build osi_hw2: CXX_EXECUTABLE_LINKER__osi_hw2_Debug CMakeFiles/osi_hw2.dir/main.cpp.o CMakeFiles/osi_hw2.dir/main7.cpp.o CMakeFiles/osi_hw2.dir/agent7.cpp.o CMakeFiles/osi_hw2.dir/smoker1.cpp.o CMakeFiles/osi_hw2.dir/smoker2.cpp.o CMakeFiles/osi_hw2.dir/smoker3.cpp.o CMakeFiles/osi_hw2.dir/agent8.cpp.o CMakeFiles/osi_hw2.dir/smoker_tobacco.cpp.o CMakeFiles/osi_hw2.dir/init_shared_memory.cpp.o CMakeFiles/osi_hw2.dir/smoker_paper.cpp.o CMakeFiles/osi_hw2.dir/smoker_matches.cpp.o CMakeFiles/osi_hw2.dir/agent9.cpp.o CMakeFiles/osi_hw2.dir/agent10.cpp.o CMakeFiles/osi_hw2.dir/smoker10.cpp.o
   FLAGS = -g -arch arm64 -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX14.4.sdk -mmacosx-version-min=14.0
   OBJECT_DIR = CMakeFiles/osi_hw2.dir
   POST_BUILD = :
