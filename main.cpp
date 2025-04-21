@@ -1,182 +1,176 @@
 #include <iostream>
-#include <thread>
-#include <chrono>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <semaphore.h>
+#include <csignal>
+#include <cstdlib>
+#include <ctime>
 #include <random>
-#include <mutex>
-#include <dispatch/dispatch.h>
 
 using namespace std;
 
-// Класс семафора для MacOS
-class MacOSSemaphore {
- private:
-  dispatch_semaphore_t sem;
- public:
-  explicit MacOSSemaphore(int value) : sem(dispatch_semaphore_create(value)) {}
-  ~MacOSSemaphore() { /* Деструктор - не требуется освобождение в ARC */ }
-
-  void wait() {
-    dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-  }
-
-  void signal() {
-    dispatch_semaphore_signal(sem);
-  }
+// Структура для разделяемой памяти
+struct SharedData {
+  bool tobacco;
+  bool paper;
+  bool matches;
+  bool running;
 };
 
-// Глобальные переменные
-MacOSSemaphore agentSem(1);       // Посредник может начать работу сразу
-MacOSSemaphore tobaccoSem(0);     // Курильщики изначально ждут
-MacOSSemaphore paperSem(0);
-MacOSSemaphore matchSem(0);
-mutex coutMutex;                 // Мьютекс для безопасного вывода
-mutex tableMutex;                // Мьютекс для доступа к таблице компонентов
-bool isTobacco = false;          // Флаги компонентов на столе
-bool isPaper = false;
-bool isMatch = false;
+SharedData* shared_data;
+sem_t *agent_sem, *tobacco_sem, *paper_sem, *match_sem;
 
-// Функция для случайной задержки
-void randomDelay(int min_ms, int max_ms) {
-  random_device rd;
-  mt19937 gen(rd());
-  uniform_int_distribution<> dist(min_ms, max_ms);
-  this_thread::sleep_for(chrono::milliseconds(dist(gen)));
+// Функция для обработки сигнала прерывания
+void signal_handler(int sig) {
+  shared_data->running = false;
+  cout << "\nПолучен сигнал прерывания. Завершение работы..." << endl;
 }
 
 // Функция посредника
-void agent() {
-  while (true) {
-    agentSem.wait(); // Ждем, пока курильщик не закончит
+void agent_process() {
+  random_device rd;
+  mt19937 gen(rd());
+  uniform_int_distribution<> dist(0, 2);
 
-    // Выбираем случайные два компонента
-    random_device rd;
-    mt19937 gen(rd());
-    uniform_int_distribution<> dist(0, 2);
+  while (shared_data->running) {
+    sem_wait(agent_sem);
+
+    shared_data->tobacco = false;
+    shared_data->paper = false;
+    shared_data->matches = false;
+
     int choice = dist(gen);
-
-    {
-      lock_guard<mutex> lock(tableMutex);
-      isTobacco = false;
-      isPaper = false;
-      isMatch = false;
-
-      switch (choice) {
-        case 0: // Кладем табак и бумагу
-          isTobacco = true;
-          isPaper = true;
-          {
-            lock_guard<mutex> coutLock(coutMutex);
-            cout << "Посредник положил табак и бумагу" << endl;
-          }
-          matchSem.signal(); // Будим курильщика со спичками
-          break;
-        case 1: // Кладем табак и спички
-          isTobacco = true;
-          isMatch = true;
-          {
-            lock_guard<mutex> coutLock(coutMutex);
-            cout << "Посредник положил табак и спички" << endl;
-          }
-          paperSem.signal(); // Будим курильщика с бумагой
-          break;
-        case 2: // Кладем бумагу и спички
-          isPaper = true;
-          isMatch = true;
-          {
-            lock_guard<mutex> coutLock(coutMutex);
-            cout << "Посредник положил бумагу и спички" << endl;
-          }
-          tobaccoSem.signal(); // Будим курильщика с табаком
-          break;
-      }
+    switch (choice) {
+      case 0:
+        shared_data->tobacco = true;
+        shared_data->paper = true;
+        cout << "Посредник положил табак и бумагу" << endl;
+        sem_post(match_sem);
+        break;
+      case 1:
+        shared_data->tobacco = true;
+        shared_data->matches = true;
+        cout << "Посредник положил табак и спички" << endl;
+        sem_post(paper_sem);
+        break;
+      case 2:
+        shared_data->paper = true;
+        shared_data->matches = true;
+        cout << "Посредник положил бумагу и спички" << endl;
+        sem_post(tobacco_sem);
+        break;
     }
 
-    randomDelay(500, 2000); // Задержка перед следующим действием
+    usleep(500000 + rand() % 1500000); // 0.5-2 секунды
   }
 }
 
-// Функции курильщиков (без параметров)
-void smokerWithTobacco() {
-  while (true) {
-    tobaccoSem.wait();
-    {
-      lock_guard<mutex> lock(tableMutex);
-      if (isPaper && isMatch) {
-        isPaper = false;
-        isMatch = false;
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 1 (табак) берет бумагу и спички" << endl;
-        }
-        agentSem.signal();
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 1 курит" << endl;
-        }
-        randomDelay(1000, 3000);
-      }
+// Функция курильщика с табаком
+void smoker_with_tobacco(int id) {
+  while (shared_data->running) {
+    sem_wait(tobacco_sem);
+
+    if (shared_data->paper && shared_data->matches) {
+      shared_data->paper = false;
+      shared_data->matches = false;
+      cout << "Курильщик " << id << " (табак) взял бумагу и спички" << endl;
+      sem_post(agent_sem);
+      cout << "Курильщик " << id << " курит" << endl;
+      usleep(1000000 + rand() % 2000000); // 1-3 секунды
     }
   }
 }
 
-void smokerWithPaper() {
-  while (true) {
-    paperSem.wait();
-    {
-      lock_guard<mutex> lock(tableMutex);
-      if (isTobacco && isMatch) {
-        isTobacco = false;
-        isMatch = false;
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 2 (бумага) берет табак и спички" << endl;
-        }
-        agentSem.signal();
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 2 курит" << endl;
-        }
-        randomDelay(1000, 3000);
-      }
+// Функция курильщика с бумагой
+void smoker_with_paper(int id) {
+  while (shared_data->running) {
+    sem_wait(paper_sem);
+
+    if (shared_data->tobacco && shared_data->matches) {
+      shared_data->tobacco = false;
+      shared_data->matches = false;
+      cout << "Курильщик " << id << " (бумага) взял табак и спички" << endl;
+      sem_post(agent_sem);
+      cout << "Курильщик " << id << " курит" << endl;
+      usleep(1000000 + rand() % 2000000); // 1-3 секунды
     }
   }
 }
 
-void smokerWithMatch() {
-  while (true) {
-    matchSem.wait();
-    {
-      lock_guard<mutex> lock(tableMutex);
-      if (isTobacco && isPaper) {
-        isTobacco = false;
-        isPaper = false;
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 3 (спички) берет табак и бумагу" << endl;
-        }
-        agentSem.signal();
-        {
-          lock_guard<mutex> coutLock(coutMutex);
-          cout << "Курильщик 3 курит" << endl;
-        }
-        randomDelay(1000, 3000);
-      }
+// Функция курильщика со спичками
+void smoker_with_matches(int id) {
+  while (shared_data->running) {
+    sem_wait(match_sem);
+
+    if (shared_data->tobacco && shared_data->paper) {
+      shared_data->tobacco = false;
+      shared_data->paper = false;
+      cout << "Курильщик " << id << " (спички) взял табак и бумагу" << endl;
+      sem_post(agent_sem);
+      cout << "Курильщик " << id << " курит" << endl;
+      usleep(1000000 + rand() % 2000000); // 1-3 секунды
     }
   }
 }
 
 int main() {
-  // Создание потоков
-  thread agentThread(agent);
-  thread smoker1(smokerWithTobacco);
-  thread smoker2(smokerWithPaper);
-  thread smoker3(smokerWithMatch);
+  // Инициализация случайного генератора
+  srand(time(nullptr));
 
-  // Ожидание завершения потоков
-  agentThread.join();
-  smoker1.join();
-  smoker2.join();
-  smoker3.join();
+  // Регистрация обработчика сигнала
+  signal(SIGINT, signal_handler);
+
+  // Создание разделяемой памяти
+  int shm_fd = shm_open("/smokers_shm", O_CREAT | O_RDWR, 0666);
+  ftruncate(shm_fd, sizeof(SharedData));
+  shared_data = (SharedData*)mmap(NULL, sizeof(SharedData), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+  shared_data->running = true;
+
+  // Инициализация семафоров
+  agent_sem = sem_open("/agent_sem", O_CREAT, 0666, 1);
+  tobacco_sem = sem_open("/tobacco_sem", O_CREAT, 0666, 0);
+  paper_sem = sem_open("/paper_sem", O_CREAT, 0666, 0);
+  match_sem = sem_open("/match_sem", O_CREAT, 0666, 0);
+
+  // Создание процессов
+  pid_t pid = fork();
+  if (pid == 0) {
+    smoker_with_tobacco(1);
+    exit(0);
+  }
+
+  pid = fork();
+  if (pid == 0) {
+    smoker_with_paper(2);
+    exit(0);
+  }
+
+  pid = fork();
+  if (pid == 0) {
+    smoker_with_matches(3);
+    exit(0);
+  }
+
+  // Родительский процесс - посредник
+  agent_process();
+
+  // Ожидание завершения дочерних процессов
+  while (wait(nullptr) > 0);
+
+  // Очистка ресурсов
+  sem_close(agent_sem);
+  sem_close(tobacco_sem);
+  sem_close(paper_sem);
+  sem_close(match_sem);
+  sem_unlink("/agent_sem");
+  sem_unlink("/tobacco_sem");
+  sem_unlink("/paper_sem");
+  sem_unlink("/match_sem");
+  munmap(shared_data, sizeof(SharedData));
+  shm_unlink("/smokers_shm");
 
   return 0;
 }
