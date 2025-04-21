@@ -15,4 +15,5 @@ add_executable(osi_hw2 main.cpp
         init_shared_memory.cpp
         smoker_paper.cpp
         smoker_matches.cpp
+        agent9.cpp
 )
