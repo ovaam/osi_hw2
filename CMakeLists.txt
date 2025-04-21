@@ -4,4 +4,9 @@ project(osi_hw2)
 set(CMAKE_CXX_STANDARD 17)
 
 add_executable(osi_hw2 main.cpp
-        main7.cpp)
+        main7.cpp
+        smokers.h
+        agent7.cpp
+        smoker1.cpp
+        smoker2.cpp
+        smoker3.cpp)
